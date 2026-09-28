@@ -1,17 +1,25 @@
 package com.app.pathprakash.navigation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-
+import com.app.pathprakash.ui.admin.AddSchoolScreen
+import com.app.pathprakash.ui.admin.SchoolsScreen
+import com.app.pathprakash.ui.admin.AdminDashboardScreen
 import com.app.pathprakash.ui.auth.LoginScreen
-import com.app.pathprakash.ui.splash.SplashScreen
 import com.app.pathprakash.viewmodel.AuthViewModel
 
 @Composable
@@ -27,169 +35,215 @@ fun AppNavigation(
 
     val userProfile by authViewModel.userProfile.collectAsState()
 
+    val isCheckingSession by authViewModel.isCheckingSession.collectAsState()
+
+
     /*
-     * When Firebase + Firestore login succeeds,
-     * AuthViewModel gives us the actual UserProfile.
+     * ------------------------------------------------
+     * SESSION RESTORE / LOGIN NAVIGATION
+     * ------------------------------------------------
      *
-     * We DO NOT use the role selected from the Login UI.
+     * App start hone par AuthViewModel Firebase
+     * session check karega.
+     *
+     * User logged in hai:
+     *      Dashboard
+     *
+     * User logged in nahi hai:
+     *      Login
      */
-    LaunchedEffect(userProfile) {
+    LaunchedEffect(
+        isCheckingSession,
+        userProfile
+    ) {
 
-        userProfile?.let { user ->
+        if (!isCheckingSession) {
 
-            when (user.role.lowercase()) {
+            if (userProfile != null) {
 
-                "super_admin" -> {
+                val profile = userProfile!!
 
-                    navController.navigate(
-                        Routes.SuperAdminDashboard.route
-                    ) {
+                when (profile.role.lowercase()) {
 
-                        popUpTo(
+                    "admin",
+                    "super_admin" -> {
+
+                        navController.navigate(
+                            Routes.SuperAdminDashboard.route
+                        ) {
+
+                            popUpTo(
+                                Routes.Splash.route
+                            ) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+
+                    "school_admin" -> {
+
+                        navController.navigate(
+                            Routes.SchoolAdminDashboard.route
+                        ) {
+
+                            popUpTo(
+                                Routes.Splash.route
+                            ) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+
+                    "teacher" -> {
+
+                        navController.navigate(
+                            Routes.TeacherDashboard.route
+                        ) {
+
+                            popUpTo(
+                                Routes.Splash.route
+                            ) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+
+                    "parent" -> {
+
+                        navController.navigate(
+                            Routes.ParentDashboard.route
+                        ) {
+
+                            popUpTo(
+                                Routes.Splash.route
+                            ) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+
+                    "student" -> {
+
+                        navController.navigate(
+                            Routes.StudentDashboard.route
+                        ) {
+
+                            popUpTo(
+                                Routes.Splash.route
+                            ) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+
+                    else -> {
+
+                        authViewModel.logout()
+
+                        navController.navigate(
                             Routes.Login.route
                         ) {
-                            inclusive = true
-                        }
 
-                        launchSingleTop = true
+                            popUpTo(
+                                Routes.Splash.route
+                            ) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
                     }
                 }
 
-                "school_admin" -> {
+            } else {
 
-                    navController.navigate(
-                        Routes.SchoolAdminDashboard.route
+                navController.navigate(
+                    Routes.Login.route
+                ) {
+
+                    popUpTo(
+                        Routes.Splash.route
                     ) {
-
-                        popUpTo(
-                            Routes.Login.route
-                        ) {
-                            inclusive = true
-                        }
-
-                        launchSingleTop = true
+                        inclusive = true
                     }
-                }
 
-                "teacher" -> {
-
-                    navController.navigate(
-                        Routes.TeacherDashboard.route
-                    ) {
-
-                        popUpTo(
-                            Routes.Login.route
-                        ) {
-                            inclusive = true
-                        }
-
-                        launchSingleTop = true
-                    }
-                }
-
-                "parent" -> {
-
-                    navController.navigate(
-                        Routes.ParentDashboard.route
-                    ) {
-
-                        popUpTo(
-                            Routes.Login.route
-                        ) {
-                            inclusive = true
-                        }
-
-                        launchSingleTop = true
-                    }
-                }
-
-                "student" -> {
-
-                    navController.navigate(
-                        Routes.StudentDashboard.route
-                    ) {
-
-                        popUpTo(
-                            Routes.Login.route
-                        ) {
-                            inclusive = true
-                        }
-
-                        launchSingleTop = true
-                    }
+                    launchSingleTop = true
                 }
             }
         }
     }
+
+
+    /*
+     * ------------------------------------------------
+     * NAVIGATION HOST
+     * ------------------------------------------------
+     */
 
     NavHost(
         navController = navController,
         startDestination = Routes.Splash.route
     ) {
 
-        // -------------------------------------------------
-        // Splash
-        // -------------------------------------------------
+
+        // =================================================
+        // SPLASH / SESSION CHECK
+        // =================================================
 
         composable(
-            route = Routes.Splash.route
+            Routes.Splash.route
         ) {
 
-            SplashScreen(
-                onSplashFinished = {
-
-                    navController.navigate(
-                        Routes.Login.route
-                    ) {
-
-                        popUpTo(
-                            Routes.Splash.route
-                        ) {
-                            inclusive = true
-                        }
-                    }
-                }
-            )
+            SessionLoadingScreen()
         }
 
-        // -------------------------------------------------
-        // Login
-        // -------------------------------------------------
+
+        // =================================================
+        // LOGIN
+        // =================================================
 
         composable(
-            route = Routes.Login.route
+            Routes.Login.route
         ) {
 
             LoginScreen(
 
-                /*
-                 * Email + Password Login
-                 *
-                 * This will be connected to FirebaseAuth.
-                 */
-                onLogin = { email, password, role ->
+                onLogin = {
+                        email,
+                        password,
+                        _ ->
 
+                    /*
+                     * Login dropdown role ko authorization
+                     * ke liye use nahi kar rahe.
+                     *
+                     * Actual role Firestore se aayega.
+                     */
                     authViewModel.loginWithEmail(
                         email = email,
                         password = password
                     )
                 },
 
-                /*
-                 * Google Login
-                 */
                 onGoogleLogin = {
 
                     authViewModel.loginWithGoogle()
                 },
 
-                /*
-                 * Forgot Password
-                 */
                 onForgotPassword = {
 
-                    // We will connect Firebase
-                    // password reset here.
+                    // Later:
+                    // Firebase password reset
                 },
 
                 isLoading = isLoading,
@@ -198,67 +252,164 @@ fun AppNavigation(
             )
         }
 
-        // -------------------------------------------------
-        // Super Admin Dashboard
-        // -------------------------------------------------
+
+        // =================================================
+        // SUPER ADMIN DASHBOARD
+        // =================================================
 
         composable(
-            route = Routes.SuperAdminDashboard.route
+            Routes.SuperAdminDashboard.route
         ) {
 
-            DashboardPlaceholder(
-                title = "Super Admin Dashboard"
+            AdminDashboardScreen(
+
+                adminName =
+                    userProfile
+                        ?.name
+                        ?.ifBlank {
+                            "Admin"
+                        }
+                        ?: "Admin",
+
+                onAddSchool = {
+
+                    navController.navigate(
+                        Routes.AddSchool.route
+                    )
+                },
+
+                onSchools = {
+
+                    navController.navigate(
+                        Routes.Schools.route
+                    )
+                },
+
+                onSettings = {
+
+                    navController.navigate(
+                        Routes.AdminSettings.route
+                    )
+                },
+
+                onLogout = {
+
+                    authViewModel.logout()
+
+                    navController.navigate(
+                        Routes.Login.route
+                    ) {
+
+                        popUpTo(0) {
+                            inclusive = true
+                        }
+
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 
-        // -------------------------------------------------
-        // School Admin Dashboard
-        // -------------------------------------------------
+
+        // =================================================
+        // ADD SCHOOL
+        // =================================================
 
         composable(
-            route = Routes.SchoolAdminDashboard.route
+            Routes.AddSchool.route
         ) {
 
-            DashboardPlaceholder(
+            AddSchoolScreen(
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
+        // =================================================
+        // SCHOOLS
+        // =================================================
+
+        composable(
+            Routes.Schools.route
+        ) {
+
+            SchoolsScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
+        // =================================================
+        // ADMIN SETTINGS
+        // =================================================
+
+        composable(
+            Routes.AdminSettings.route
+        ) {
+
+            SimpleAdminScreen(
+                title = "Admin Settings"
+            )
+        }
+
+
+        // =================================================
+        // SCHOOL ADMIN DASHBOARD
+        // =================================================
+
+        composable(
+            Routes.SchoolAdminDashboard.route
+        ) {
+
+            SimpleAdminScreen(
                 title = "School Admin Dashboard"
             )
         }
 
-        // -------------------------------------------------
-        // Teacher Dashboard
-        // -------------------------------------------------
+
+        // =================================================
+        // TEACHER DASHBOARD
+        // =================================================
 
         composable(
-            route = Routes.TeacherDashboard.route
+            Routes.TeacherDashboard.route
         ) {
 
-            DashboardPlaceholder(
+            SimpleAdminScreen(
                 title = "Teacher Dashboard"
             )
         }
 
-        // -------------------------------------------------
-        // Parent Dashboard
-        // -------------------------------------------------
+
+        // =================================================
+        // PARENT DASHBOARD
+        // =================================================
 
         composable(
-            route = Routes.ParentDashboard.route
+            Routes.ParentDashboard.route
         ) {
 
-            DashboardPlaceholder(
+            SimpleAdminScreen(
                 title = "Parent Dashboard"
             )
         }
 
-        // -------------------------------------------------
-        // Student Dashboard
-        // -------------------------------------------------
+
+        // =================================================
+        // STUDENT DASHBOARD
+        // =================================================
 
         composable(
-            route = Routes.StudentDashboard.route
+            Routes.StudentDashboard.route
         ) {
 
-            DashboardPlaceholder(
+            SimpleAdminScreen(
                 title = "Student Dashboard"
             )
         }
@@ -266,16 +417,57 @@ fun AppNavigation(
 }
 
 
-// ---------------------------------------------------------
-// Temporary Dashboard Placeholder
-// ---------------------------------------------------------
+/*
+ * =====================================================
+ * SESSION LOADING SCREEN
+ * =====================================================
+ */
 
 @Composable
-private fun DashboardPlaceholder(
+private fun SessionLoadingScreen() {
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+
+        verticalArrangement =
+            Arrangement.Center
+    ) {
+
+        CircularProgressIndicator()
+    }
+}
+
+
+/*
+ * =====================================================
+ * TEMPORARY SCREEN
+ * =====================================================
+ */
+
+@Composable
+private fun SimpleAdminScreen(
     title: String
 ) {
 
-    Text(
-        text = title
-    )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+
+        verticalArrangement =
+            Arrangement.Center
+    ) {
+
+        Text(
+            text = title,
+            style =
+                MaterialTheme
+                    .typography
+                    .headlineMedium
+        )
+    }
 }

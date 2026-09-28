@@ -18,7 +18,8 @@ class AuthRepository(
     private val context: Context
 ) {
 
-    private val auth = FirebaseAuth.getInstance()
+    private val auth =
+        FirebaseAuth.getInstance()
 
     private val firestore =
         FirebaseFirestore.getInstance()
@@ -35,7 +36,6 @@ class AuthRepository(
 
         return try {
 
-            // Firebase Authentication
             auth.signInWithEmailAndPassword(
                 email.trim(),
                 password
@@ -51,16 +51,13 @@ class AuthRepository(
 
             val uid = firebaseUser.uid
 
+            val userDocument =
+                firestore
+                    .collection("users")
+                    .document(uid)
+                    .get()
+                    .await()
 
-            // Get user profile from Firestore
-            val userDocument = firestore
-                .collection("users")
-                .document(uid)
-                .get()
-                .await()
-
-
-            // User document does not exist
             if (!userDocument.exists()) {
 
                 auth.signOut()
@@ -72,9 +69,6 @@ class AuthRepository(
                 )
             }
 
-
-            // Convert Firestore document
-            // into UserProfile
             val profile =
                 userDocument.toObject(
                     UserProfile::class.java
@@ -85,8 +79,6 @@ class AuthRepository(
                         )
                     )
 
-
-            // Check account status
             if (!profile.isActive) {
 
                 auth.signOut()
@@ -97,7 +89,6 @@ class AuthRepository(
                     )
                 )
             }
-
 
             Result.success(profile)
 
@@ -125,46 +116,32 @@ class AuthRepository(
             val credentialManager =
                 CredentialManager.create(context)
 
-
-            // Google ID option
             val googleIdOption =
                 GetGoogleIdOption.Builder()
-//
-//                    .setServerClientId(
-//                        context.getString(
-//                            R.string.default_web_client_id
-//                        )
-//                    )
-
+                    .setServerClientId(
+                        context.getString(
+                            R.string.default_web_client_id
+                        )
+                    )
                     .setFilterByAuthorizedAccounts(false)
-
                     .build()
 
-
-            // Credential request
             val request =
                 GetCredentialRequest.Builder()
-
                     .addCredentialOption(
                         googleIdOption
                     )
-
                     .build()
 
-
-            // Show Google account selector
             val result =
                 credentialManager.getCredential(
                     context,
                     request
                 )
 
-
             val credential =
                 result.credential
 
-
-            // Check Google credential
             if (
                 credential is CustomCredential &&
                 credential.type ==
@@ -191,21 +168,19 @@ class AuthRepository(
                         )
                     }
 
-
-                // Convert Google credential
-                // into Firebase credential
                 val firebaseCredential =
                     GoogleAuthProvider.getCredential(
                         googleCredential.idToken,
                         null
                     )
 
+                // -----------------------------------------
+                // Sign in with Google to Firebase
+                // -----------------------------------------
 
-                // Firebase login
                 auth.signInWithCredential(
                     firebaseCredential
                 ).await()
-
 
                 val firebaseUser =
                     auth.currentUser
@@ -215,12 +190,13 @@ class AuthRepository(
                             )
                         )
 
-
                 val uid =
                     firebaseUser.uid
 
+                // -----------------------------------------
+                // Check PathPrakash users collection
+                // -----------------------------------------
 
-                // Get Firestore profile
                 val userDocument =
                     firestore
                         .collection("users")
@@ -228,33 +204,45 @@ class AuthRepository(
                         .get()
                         .await()
 
+                // -----------------------------------------
+                // Google account not registered
+                // -----------------------------------------
 
-                // Google account authenticated,
-                // but not registered in PathPrakash
                 if (!userDocument.exists()) {
 
                     auth.signOut()
 
                     return Result.failure(
                         Exception(
-                            "This Google account is not registered in PathPrakash."
+                            "This email is not registered in PathPrakash."
                         )
                     )
                 }
 
+                // -----------------------------------------
+                // Convert Firestore document to profile
+                // -----------------------------------------
 
                 val profile =
                     userDocument.toObject(
                         UserProfile::class.java
                     )
-                        ?: return Result.failure(
-                            Exception(
-                                "Invalid user profile."
-                            )
+
+                if (profile == null) {
+
+                    auth.signOut()
+
+                    return Result.failure(
+                        Exception(
+                            "Invalid PathPrakash user profile."
                         )
+                    )
+                }
 
-
+                // -----------------------------------------
                 // Check account status
+                // -----------------------------------------
+
                 if (!profile.isActive) {
 
                     auth.signOut()
@@ -266,6 +254,9 @@ class AuthRepository(
                     )
                 }
 
+                // -----------------------------------------
+                // Everything is valid
+                // -----------------------------------------
 
                 Result.success(profile)
 
@@ -286,6 +277,75 @@ class AuthRepository(
                 Exception(
                     e.message
                         ?: "Google login failed."
+                )
+            )
+        }
+    }
+
+
+    // =====================================================
+    // RESTORE EXISTING LOGIN SESSION
+    // =====================================================
+
+    suspend fun getCurrentUserProfile():
+            Result<UserProfile?> {
+
+        return try {
+
+            val firebaseUser =
+                auth.currentUser
+                    ?: return Result.success(null)
+
+            val uid =
+                firebaseUser.uid
+
+            val userDocument =
+                firestore
+                    .collection("users")
+                    .document(uid)
+                    .get()
+                    .await()
+
+            if (!userDocument.exists()) {
+
+                auth.signOut()
+
+                return Result.failure(
+                    Exception(
+                        "User profile not found."
+                    )
+                )
+            }
+
+            val profile =
+                userDocument.toObject(
+                    UserProfile::class.java
+                )
+                    ?: return Result.failure(
+                        Exception(
+                            "Invalid user profile."
+                        )
+                    )
+
+            if (!profile.isActive) {
+
+                auth.signOut()
+
+                return Result.failure(
+                    Exception(
+                        "Your PathPrakash account is inactive."
+                    )
+                )
+            }
+
+            Result.success(profile)
+
+        } catch (e: Exception) {
+
+            Result.failure(
+                Exception(
+                    e.message
+                        ?: "Unable to restore login session."
                 )
             )
         }

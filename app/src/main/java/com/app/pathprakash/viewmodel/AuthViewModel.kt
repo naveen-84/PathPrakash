@@ -16,8 +16,9 @@ class AuthViewModel(
     private val repository =
         AuthRepository(application.applicationContext)
 
+
     // -----------------------------------------------------
-    // Loading
+    // Loading - Login
     // -----------------------------------------------------
 
     private val _isLoading =
@@ -25,6 +26,17 @@ class AuthViewModel(
 
     val isLoading: StateFlow<Boolean> =
         _isLoading
+
+
+    // -----------------------------------------------------
+    // Session Checking
+    // -----------------------------------------------------
+
+    private val _isCheckingSession =
+        MutableStateFlow(true)
+
+    val isCheckingSession: StateFlow<Boolean> =
+        _isCheckingSession
 
 
     // -----------------------------------------------------
@@ -47,6 +59,42 @@ class AuthViewModel(
 
     val userProfile: StateFlow<UserProfile?> =
         _userProfile
+
+
+    // -----------------------------------------------------
+    // CHECK EXISTING LOGIN SESSION
+    // -----------------------------------------------------
+
+    init {
+        restoreSession()
+    }
+
+
+    private fun restoreSession() {
+
+        viewModelScope.launch {
+
+            _isCheckingSession.value = true
+
+            val result =
+                repository.getCurrentUserProfile()
+
+            result
+                .onSuccess { profile ->
+
+                    _userProfile.value = profile
+                }
+                .onFailure { error ->
+
+                    _userProfile.value = null
+
+                    _errorMessage.value =
+                        error.message
+                }
+
+            _isCheckingSession.value = false
+        }
+    }
 
 
     // -----------------------------------------------------
@@ -76,6 +124,8 @@ class AuthViewModel(
                         profile
                 }
                 .onFailure { error ->
+
+                    _userProfile.value = null
 
                     _errorMessage.value =
                         error.message
@@ -108,6 +158,8 @@ class AuthViewModel(
                         profile
                 }
                 .onFailure { error ->
+
+                    _userProfile.value = null
 
                     _errorMessage.value =
                         error.message
