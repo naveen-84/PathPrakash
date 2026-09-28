@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "61161742973",
+    "project_id": "pathprakash-4a23d",
+    "storage_bucket": "pathprakash-4a23d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61161742973:android:8f46d42e5b3aee9ab48714",
+        "android_client_info": {
+          "package_name": "com.app.pathprakash"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "61161742973-184m7uh3dg8noneng4pod38d0i0pfd2o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.pathprakash",
+            "certificate_hash": "5c1a221bf34fbc0e55eb322c84f8a8073547dbb3"
+          }
+        },
+        {
+          "client_id": "61161742973-6vuk3i8fhnakcr5dio42stn4qjfsmpq2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFnQw6KRpHvEfKixtUTfHIhYQnAiQ54qM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "61161742973-6vuk3i8fhnakcr5dio42stn4qjfsmpq2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
