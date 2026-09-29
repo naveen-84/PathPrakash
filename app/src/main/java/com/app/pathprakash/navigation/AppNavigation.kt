@@ -20,6 +20,7 @@ import com.app.pathprakash.ui.admin.AddSchoolScreen
 import com.app.pathprakash.ui.admin.AdminDashboardScreen
 import com.app.pathprakash.ui.admin.AdminProfileScreen
 import com.app.pathprakash.ui.admin.SchoolsScreen
+import com.app.pathprakash.ui.admin.SystemSettingsScreen
 import com.app.pathprakash.ui.auth.LoginScreen
 import com.app.pathprakash.viewmodel.AuthViewModel
 
@@ -571,13 +572,11 @@ fun AppNavigation(
         // ADMIN SETTINGS
         // =================================================
 
-        composable(
-            Routes.AdminSettings.route
-        ) {
-
-            SimpleAdminScreen(
-                title =
-                    "Admin Settings"
+        composable(Routes.AdminSettings.route) {
+            SystemSettingsScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
             )
         }
 
