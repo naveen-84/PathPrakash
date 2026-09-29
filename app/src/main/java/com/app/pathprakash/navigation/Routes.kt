@@ -26,6 +26,30 @@ sealed class Routes(
 
     data object AdminProfile :
         Routes("admin_profile")
+
+    // Sysyem Setting
+    data object SystemSettings :
+        Routes("system_settings")
+    data object GeneralSettings :
+        Routes("general_settings")
+    data object UserRoleSettings :
+        Routes("user_role_settings")
+    data object SchoolManagementSettings :
+        Routes("school_management_settings")
+    data object NotificationSettings :
+        Routes("notification_settings")
+    data object SecuritySettings :
+        Routes("security_settings")
+    data object StorageSettings :
+        Routes("storage_settings")
+    data object AcademicDefaults :
+        Routes("academic_defaults")
+    data object SubscriptionSettings :
+        Routes("subscription_settings")
+    data object MaintenanceSettings :
+        Routes("maintenance_settings")
+    data object AuditLogs : Routes("audit_logs")
+
     // School Admin
     data object SchoolAdminDashboard :
         Routes("school_admin_dashboard")

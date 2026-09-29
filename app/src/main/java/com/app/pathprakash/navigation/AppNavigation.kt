@@ -21,6 +21,18 @@ import com.app.pathprakash.ui.admin.AdminDashboardScreen
 import com.app.pathprakash.ui.admin.AdminProfileScreen
 import com.app.pathprakash.ui.admin.SchoolsScreen
 import com.app.pathprakash.ui.admin.SystemSettingsScreen
+import com.app.pathprakash.ui.admin.system.AcademicDefaultsScreen
+import com.app.pathprakash.ui.admin.system.AuditLogsScreen
+import com.app.pathprakash.ui.admin.system.GeneralSettingsScreen
+import com.app.pathprakash.ui.admin.system.MaintenanceSettingsScreen
+import com.app.pathprakash.ui.admin.system.NotificationSettingsScreen
+import com.app.pathprakash.ui.admin.system.SchoolManagementSettingsScreen
+import com.app.pathprakash.ui.admin.system.SecuritySettingsScreen
+import com.app.pathprakash.ui.admin.system.StorageSettingsScreen
+import com.app.pathprakash.ui.admin.system.SubscriptionSettingsScreen
+import com.app.pathprakash.ui.admin.system.SystemSettingsScreen
+import com.app.pathprakash.ui.admin.system.UserRoleSettingsScreen
+
 import com.app.pathprakash.ui.auth.LoginScreen
 import com.app.pathprakash.viewmodel.AuthViewModel
 
@@ -572,14 +584,103 @@ fun AppNavigation(
         // ADMIN SETTINGS
         // =================================================
 
-        composable(Routes.AdminSettings.route) {
+        composable(Routes.SystemSettings.route) {
             SystemSettingsScreen(
                 onBack = {
                     navController.popBackStack()
+                },
+                onGeneral = {
+                    navController.navigate(Routes.GeneralSettings.route)
+                },
+                onUsersRoles = {
+                    navController.navigate(Routes.UserRoleSettings.route)
+                },
+                onSchoolManagement = {
+                    navController.navigate(Routes.SchoolManagementSettings.route)
+                },
+                onNotifications = {
+                    navController.navigate(Routes.NotificationSettings.route)
+                },
+                onSecurity = {
+                    navController.navigate(Routes.SecuritySettings.route)
+                },
+                onStorage = {
+                    navController.navigate(Routes.StorageSettings.route)
+                },
+                onAcademicDefaults = {
+                    navController.navigate(Routes.AcademicDefaults.route)
+                },
+                onSubscription = {
+                    navController.navigate(Routes.SubscriptionSettings.route)
+                },
+                onMaintenance = {
+                    navController.navigate(Routes.MaintenanceSettings.route)
+                },
+                onAuditLogs = {
+                    navController.navigate(Routes.AuditLogs.route)
                 }
             )
         }
 
+        composable(Routes.GeneralSettings.route) {
+            GeneralSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.UserRoleSettings.route) {
+            UserRoleSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.SchoolManagementSettings.route) {
+            SchoolManagementSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.NotificationSettings.route) {
+            NotificationSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.SecuritySettings.route) {
+            SecuritySettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.StorageSettings.route) {
+            StorageSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.AcademicDefaults.route) {
+            AcademicDefaultsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.SubscriptionSettings.route) {
+            SubscriptionSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.MaintenanceSettings.route) {
+            MaintenanceSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.AuditLogs.route) {
+            AuditLogsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
 
         // =================================================
         // SCHOOL ADMIN DASHBOARD
