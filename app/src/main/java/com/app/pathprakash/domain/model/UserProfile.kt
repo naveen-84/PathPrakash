@@ -7,5 +7,7 @@ data class UserProfile(
     val role: String = "",
     val schoolId: String? = null,
     val profileId: String = "",
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val profilePhotoUrl: String = ""
+
 )

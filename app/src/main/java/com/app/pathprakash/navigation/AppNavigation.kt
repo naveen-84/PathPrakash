@@ -17,53 +17,89 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.app.pathprakash.ui.admin.AddSchoolScreen
-import com.app.pathprakash.ui.admin.SchoolsScreen
 import com.app.pathprakash.ui.admin.AdminDashboardScreen
+import com.app.pathprakash.ui.admin.AdminProfileScreen
+import com.app.pathprakash.ui.admin.SchoolsScreen
 import com.app.pathprakash.ui.auth.LoginScreen
 import com.app.pathprakash.viewmodel.AuthViewModel
+
+
+// =====================================================
+// APP NAVIGATION
+// =====================================================
 
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel = viewModel()
 ) {
 
-    val navController = rememberNavController()
+    // =================================================
+    // NAV CONTROLLER
+    // =================================================
 
-    val isLoading by authViewModel.isLoading.collectAsState()
-
-    val errorMessage by authViewModel.errorMessage.collectAsState()
-
-    val userProfile by authViewModel.userProfile.collectAsState()
-
-    val isCheckingSession by authViewModel.isCheckingSession.collectAsState()
+    val navController =
+        rememberNavController()
 
 
-    /*
-     * ------------------------------------------------
-     * SESSION RESTORE / LOGIN NAVIGATION
-     * ------------------------------------------------
-     *
-     * App start hone par AuthViewModel Firebase
-     * session check karega.
-     *
-     * User logged in hai:
-     *      Dashboard
-     *
-     * User logged in nahi hai:
-     *      Login
-     */
+    // =================================================
+    // AUTH STATE
+    // =================================================
+
+    val isLoading by
+    authViewModel
+        .isLoading
+        .collectAsState()
+
+    val errorMessage by
+    authViewModel
+        .errorMessage
+        .collectAsState()
+
+    val userProfile by
+    authViewModel
+        .userProfile
+        .collectAsState()
+
+    val isCheckingSession by
+    authViewModel
+        .isCheckingSession
+        .collectAsState()
+
+
+    // =================================================
+    // SESSION RESTORE
+    // =================================================
+
     LaunchedEffect(
         isCheckingSession,
         userProfile
     ) {
 
+        // Session check complete hone ke baad hi
+        // navigation perform hogi.
+
         if (!isCheckingSession) {
+
+            // =================================================
+            // USER LOGGED IN
+            // =================================================
 
             if (userProfile != null) {
 
-                val profile = userProfile!!
+                val profile =
+                    userProfile!!
 
-                when (profile.role.lowercase()) {
+
+                when (
+                    profile.role
+                        .trim()
+                        .lowercase()
+                ) {
+
+
+                    // =========================================
+                    // SUPER ADMIN
+                    // =========================================
 
                     "admin",
                     "super_admin" -> {
@@ -82,6 +118,11 @@ fun AppNavigation(
                         }
                     }
 
+
+                    // =========================================
+                    // SCHOOL ADMIN
+                    // =========================================
+
                     "school_admin" -> {
 
                         navController.navigate(
@@ -97,6 +138,11 @@ fun AppNavigation(
                             launchSingleTop = true
                         }
                     }
+
+
+                    // =========================================
+                    // TEACHER
+                    // =========================================
 
                     "teacher" -> {
 
@@ -114,6 +160,11 @@ fun AppNavigation(
                         }
                     }
 
+
+                    // =========================================
+                    // PARENT
+                    // =========================================
+
                     "parent" -> {
 
                         navController.navigate(
@@ -130,6 +181,11 @@ fun AppNavigation(
                         }
                     }
 
+
+                    // =========================================
+                    // STUDENT
+                    // =========================================
+
                     "student" -> {
 
                         navController.navigate(
@@ -145,6 +201,11 @@ fun AppNavigation(
                             launchSingleTop = true
                         }
                     }
+
+
+                    // =========================================
+                    // UNKNOWN ROLE
+                    // =========================================
 
                     else -> {
 
@@ -167,6 +228,10 @@ fun AppNavigation(
 
             } else {
 
+                // =================================================
+                // USER NOT LOGGED IN
+                // =================================================
+
                 navController.navigate(
                     Routes.Login.route
                 ) {
@@ -184,20 +249,22 @@ fun AppNavigation(
     }
 
 
-    /*
-     * ------------------------------------------------
-     * NAVIGATION HOST
-     * ------------------------------------------------
-     */
+    // =====================================================
+    // NAVIGATION HOST
+    // =====================================================
 
     NavHost(
-        navController = navController,
-        startDestination = Routes.Splash.route
+
+        navController =
+            navController,
+
+        startDestination =
+            Routes.Splash.route
     ) {
 
 
         // =================================================
-        // SPLASH / SESSION CHECK
+        // SPLASH
         // =================================================
 
         composable(
@@ -224,31 +291,45 @@ fun AppNavigation(
                         _ ->
 
                     /*
-                     * Login dropdown role ko authorization
-                     * ke liye use nahi kar rahe.
+                     * Login screen se selected role
+                     * authorization ke liye use nahi ho raha.
                      *
-                     * Actual role Firestore se aayega.
+                     * Actual role Firestore users/{uid}
+                     * se liya jayega.
                      */
+
                     authViewModel.loginWithEmail(
-                        email = email,
-                        password = password
+
+                        email =
+                            email,
+
+                        password =
+                            password
                     )
                 },
+
 
                 onGoogleLogin = {
 
                     authViewModel.loginWithGoogle()
                 },
 
+
                 onForgotPassword = {
 
-                    // Later:
-                    // Firebase password reset
+                    // =========================================
+                    // TODO
+                    // Firebase password reset later
+                    // =========================================
                 },
 
-                isLoading = isLoading,
 
-                errorMessage = errorMessage
+                isLoading =
+                    isLoading,
+
+
+                errorMessage =
+                    errorMessage
             )
         }
 
@@ -263,6 +344,10 @@ fun AppNavigation(
 
             AdminDashboardScreen(
 
+                // ---------------------------------------------
+                // ADMIN NAME
+                // ---------------------------------------------
+
                 adminName =
                     userProfile
                         ?.name
@@ -271,12 +356,22 @@ fun AppNavigation(
                         }
                         ?: "Admin",
 
+
+                // ---------------------------------------------
+                // ADD SCHOOL
+                // ---------------------------------------------
+
                 onAddSchool = {
 
                     navController.navigate(
                         Routes.AddSchool.route
                     )
                 },
+
+
+                // ---------------------------------------------
+                // SCHOOLS
+                // ---------------------------------------------
 
                 onSchools = {
 
@@ -285,12 +380,61 @@ fun AppNavigation(
                     )
                 },
 
+
+                // ---------------------------------------------
+                // SETTINGS
+                // ---------------------------------------------
+
                 onSettings = {
 
                     navController.navigate(
                         Routes.AdminSettings.route
                     )
                 },
+
+
+                // ---------------------------------------------
+                // USERS
+                // ---------------------------------------------
+
+                onUsers = {
+
+                    /*
+                     * Users screen baad mein implement karenge.
+                     */
+                },
+
+
+                // ---------------------------------------------
+                // REPORTS
+                // ---------------------------------------------
+
+                onReports = {
+
+                    /*
+                     * Reports screen baad mein implement karenge.
+                     */
+                },
+
+
+                // ---------------------------------------------
+                // PROFILE
+                // ---------------------------------------------
+
+                onProfile = {
+
+                    navController.navigate(
+                        Routes.AdminProfile.route
+                    ) {
+
+                        launchSingleTop = true
+                    }
+                },
+
+
+                // ---------------------------------------------
+                // LOGOUT
+                // ---------------------------------------------
 
                 onLogout = {
 
@@ -338,8 +482,86 @@ fun AppNavigation(
         ) {
 
             SchoolsScreen(
+
                 onBack = {
+
                     navController.popBackStack()
+                }
+            )
+        }
+
+
+        // =================================================
+        // ADMIN PROFILE
+        // =================================================
+
+        composable(
+            Routes.AdminProfile.route
+        ) {
+
+            AdminProfileScreen(
+
+                // ---------------------------------------------
+                // NAME
+                // ---------------------------------------------
+
+                adminName =
+                    userProfile
+                        ?.name
+                        ?.ifBlank {
+                            "PathPrakash Admin"
+                        }
+                        ?: "PathPrakash Admin",
+
+
+                // ---------------------------------------------
+                // EMAIL
+                // ---------------------------------------------
+
+                adminEmail =
+                    userProfile
+                        ?.email
+                        ?: "",
+
+
+                // ---------------------------------------------
+                // FIREBASE UID
+                // ---------------------------------------------
+
+                adminUid =
+                    userProfile
+                        ?.uid
+                        ?: "",
+
+
+                // ---------------------------------------------
+                // BACK
+                // ---------------------------------------------
+
+                onBack = {
+
+                    navController.popBackStack()
+                },
+
+
+                // ---------------------------------------------
+                // LOGOUT
+                // ---------------------------------------------
+
+                onLogout = {
+
+                    authViewModel.logout()
+
+                    navController.navigate(
+                        Routes.Login.route
+                    ) {
+
+                        popUpTo(0) {
+                            inclusive = true
+                        }
+
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -354,7 +576,8 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title = "Admin Settings"
+                title =
+                    "Admin Settings"
             )
         }
 
@@ -368,7 +591,8 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title = "School Admin Dashboard"
+                title =
+                    "School Admin Dashboard"
             )
         }
 
@@ -382,7 +606,8 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title = "Teacher Dashboard"
+                title =
+                    "Teacher Dashboard"
             )
         }
 
@@ -396,7 +621,8 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title = "Parent Dashboard"
+                title =
+                    "Parent Dashboard"
             )
         }
 
@@ -410,24 +636,25 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title = "Student Dashboard"
+                title =
+                    "Student Dashboard"
             )
         }
     }
 }
 
 
-/*
- * =====================================================
- * SESSION LOADING SCREEN
- * =====================================================
- */
+// =====================================================
+// SESSION LOADING SCREEN
+// =====================================================
 
 @Composable
 private fun SessionLoadingScreen() {
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+
+        modifier =
+            Modifier.fillMaxSize(),
 
         horizontalAlignment =
             Alignment.CenterHorizontally,
@@ -441,11 +668,9 @@ private fun SessionLoadingScreen() {
 }
 
 
-/*
- * =====================================================
- * TEMPORARY SCREEN
- * =====================================================
- */
+// =====================================================
+// TEMPORARY SCREEN
+// =====================================================
 
 @Composable
 private fun SimpleAdminScreen(
@@ -453,7 +678,9 @@ private fun SimpleAdminScreen(
 ) {
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+
+        modifier =
+            Modifier.fillMaxSize(),
 
         horizontalAlignment =
             Alignment.CenterHorizontally,
@@ -463,7 +690,10 @@ private fun SimpleAdminScreen(
     ) {
 
         Text(
-            text = title,
+
+            text =
+                title,
+
             style =
                 MaterialTheme
                     .typography

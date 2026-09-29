@@ -14,6 +14,7 @@ sealed class Routes(
     data object SuperAdminDashboard :
         Routes("super_admin_dashboard")
 
+
     data object AddSchool :
         Routes("add_school")
 
@@ -23,6 +24,8 @@ sealed class Routes(
     data object AdminSettings :
         Routes("admin_settings")
 
+    data object AdminProfile :
+        Routes("admin_profile")
     // School Admin
     data object SchoolAdminDashboard :
         Routes("school_admin_dashboard")

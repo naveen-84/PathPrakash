@@ -1,28 +1,36 @@
 package com.app.pathprakash.ui.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddBusiness
-import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SupervisedUserCircle
+import androidx.compose.material.icons.outlined.AddBusiness
+import androidx.compose.material.icons.outlined.AdminPanelSettings
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -65,6 +75,8 @@ private val PathOrangeDark = Color(0xFFF57C00)
 
 private val PathBackground = Color(0xFFF7F9FC)
 
+private val BottomPurple = Color(0xFF4C2BF5)
+
 
 // =====================================================
 // ADMIN MENU ITEM
@@ -78,7 +90,42 @@ data class AdminMenuItem(
 
 
 // =====================================================
-// ADMIN DASHBOARD
+// BOTTOM NAVIGATION ITEM
+// =====================================================
+
+enum class AdminBottomNavItem(
+    val title: String,
+    val icon: ImageVector
+) {
+    HOME(
+        title = "Home",
+        icon = Icons.Outlined.Home
+    ),
+
+    SCHOOLS(
+        title = "Schools",
+        icon = Icons.Outlined.School
+    ),
+
+    USERS(
+        title = "Users",
+        icon = Icons.Outlined.Groups
+    ),
+
+    REPORTS(
+        title = "Reports",
+        icon = Icons.Outlined.BarChart
+    ),
+
+    PROFILE(
+        title = "Profile",
+        icon = Icons.Outlined.Person
+    )
+}
+
+
+// =====================================================
+// ADMIN DASHBOARD SCREEN
 // =====================================================
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,15 +135,23 @@ fun AdminDashboardScreen(
     onAddSchool: () -> Unit,
     onSchools: () -> Unit,
     onSettings: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onUsers: () -> Unit = {},
+    onReports: () -> Unit = {},
+    onProfile: () -> Unit = {}
 ) {
+
+    // =================================================
+    // FIRESTORE
+    // =================================================
 
     val firestore = remember {
         FirebaseFirestore.getInstance()
     }
 
+
     // =================================================
-    // REAL FIRESTORE COUNTS
+    // COUNTS
     // =================================================
 
     var schoolCount by remember {
@@ -117,7 +172,18 @@ fun AdminDashboardScreen(
 
 
     // =================================================
-    // LOAD REAL COUNTS
+    // BOTTOM NAV SELECTED ITEM
+    // =================================================
+
+    var selectedBottomItem by remember {
+        mutableStateOf(
+            AdminBottomNavItem.HOME
+        )
+    }
+
+
+    // =================================================
+    // LOAD FIRESTORE COUNTS
     // =================================================
 
     LaunchedEffect(Unit) {
@@ -126,11 +192,11 @@ fun AdminDashboardScreen(
 
         try {
 
-            // ---------------------------------------------
-            // TOTAL SCHOOLS
-            // ---------------------------------------------
+            // -----------------------------------------
+            // SCHOOLS
+            // -----------------------------------------
 
-            val schoolsResult =
+            val schoolsSnapshot =
                 firestore
                     .collection("schools")
                     .count()
@@ -138,14 +204,14 @@ fun AdminDashboardScreen(
                     .await()
 
             schoolCount =
-                schoolsResult.count
+                schoolsSnapshot.count
 
 
-            // ---------------------------------------------
-            // TOTAL TEACHERS
-            // ---------------------------------------------
+            // -----------------------------------------
+            // TEACHERS
+            // -----------------------------------------
 
-            val teachersResult =
+            val teachersSnapshot =
                 firestore
                     .collection("users")
                     .whereEqualTo(
@@ -157,14 +223,14 @@ fun AdminDashboardScreen(
                     .await()
 
             teacherCount =
-                teachersResult.count
+                teachersSnapshot.count
 
 
-            // ---------------------------------------------
-            // TOTAL STUDENTS
-            // ---------------------------------------------
+            // -----------------------------------------
+            // STUDENTS
+            // -----------------------------------------
 
-            val studentsResult =
+            val studentsSnapshot =
                 firestore
                     .collection("users")
                     .whereEqualTo(
@@ -176,12 +242,12 @@ fun AdminDashboardScreen(
                     .await()
 
             studentCount =
-                studentsResult.count
+                studentsSnapshot.count
 
         } catch (e: Exception) {
 
-            // Keep previous values if loading fails.
-            // Do not crash the dashboard.
+            // Do not crash dashboard
+            // if count request fails.
 
         } finally {
 
@@ -191,7 +257,7 @@ fun AdminDashboardScreen(
 
 
     // =================================================
-    // MENU ITEMS
+    // MANAGEMENT ITEMS
     // =================================================
 
     val menuItems = listOf(
@@ -199,48 +265,52 @@ fun AdminDashboardScreen(
         AdminMenuItem(
             title = "Add School",
             subtitle = "Register a new school",
-            icon = Icons.Default.AddBusiness
+            icon = Icons.Outlined.AddBusiness
         ),
 
         AdminMenuItem(
             title = "Schools",
             subtitle = "Manage registered schools",
-            icon = Icons.Default.School
+            icon = Icons.Outlined.School
         ),
 
         AdminMenuItem(
             title = "Users",
             subtitle = "Manage platform users",
-            icon = Icons.Default.Groups
+            icon = Icons.Outlined.Groups
         ),
 
         AdminMenuItem(
             title = "Admins",
             subtitle = "Manage administrators",
-            icon = Icons.Default.SupervisedUserCircle
+            icon = Icons.Outlined.AdminPanelSettings
         ),
 
         AdminMenuItem(
             title = "System Settings",
             subtitle = "Configure PathPrakash",
-            icon = Icons.Default.Settings
+            icon = Icons.Outlined.Settings
         ),
 
         AdminMenuItem(
             title = "Admin Profile",
             subtitle = "View admin account",
-            icon = Icons.Default.AdminPanelSettings
+            icon = Icons.Outlined.Person
         )
     )
 
 
     // =================================================
-    // UI
+    // SCAFFOLD
     // =================================================
 
     Scaffold(
 
         containerColor = PathBackground,
+
+        // =================================================
+        // TOP APP BAR
+        // =================================================
 
         topBar = {
 
@@ -254,15 +324,17 @@ fun AdminDashboardScreen(
                             text = "PathPrakash",
                             color = PathBlue,
                             fontWeight = FontWeight.Bold,
-                            style =
-                                MaterialTheme.typography.titleLarge
+                            style = MaterialTheme
+                                .typography
+                                .titleLarge
                         )
 
                         Text(
                             text = "Admin Dashboard",
                             color = Color.Gray,
-                            style =
-                                MaterialTheme.typography.bodySmall
+                            style = MaterialTheme
+                                .typography
+                                .bodySmall
                         )
                     }
                 },
@@ -275,10 +347,13 @@ fun AdminDashboardScreen(
 
                         Icon(
                             imageVector =
-                                Icons.Default.Logout,
+                                Icons.Outlined.Logout,
+
                             contentDescription =
                                 "Logout",
-                            tint = PathBlue
+
+                            tint =
+                                PathBlue
                         )
                     }
                 },
@@ -289,24 +364,68 @@ fun AdminDashboardScreen(
                             Color.White
                     )
             )
+        },
+
+
+        // =================================================
+        // BOTTOM BAR
+        // =================================================
+
+        bottomBar = {
+
+            AdminBottomNavigationBar(
+
+                selectedItem =
+                    selectedBottomItem,
+
+                onItemSelected = { item ->
+
+                    selectedBottomItem = item
+
+                    when (item) {
+
+                        AdminBottomNavItem.HOME -> {
+                            // Already on dashboard
+                        }
+
+                        AdminBottomNavItem.SCHOOLS -> {
+                            onSchools()
+                        }
+
+                        AdminBottomNavItem.USERS -> {
+                            onUsers()
+                        }
+
+                        AdminBottomNavItem.REPORTS -> {
+                            onReports()
+                        }
+
+                        AdminBottomNavItem.PROFILE -> {
+                            onProfile()
+                        }
+                    }
+                }
+            )
         }
 
     ) { paddingValues ->
+
+
+        // =================================================
+        // MAIN CONTENT
+        // =================================================
 
         Column(
 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-
-            verticalArrangement =
-                Arrangement.Top
+                .padding(horizontal = 20.dp)
         ) {
 
             Spacer(
                 modifier =
-                    Modifier.height(20.dp)
+                    Modifier.height(18.dp)
             )
 
 
@@ -322,15 +441,13 @@ fun AdminDashboardScreen(
                         RoundedCornerShape(24.dp)
                     )
                     .background(
-                        brush =
-                            Brush.linearGradient(
-                                colors =
-                                    listOf(
-                                        PathBlue,
-                                        PathBlueLight,
-                                        PathOrange
-                                    )
+                        Brush.linearGradient(
+                            colors = listOf(
+                                PathBlue,
+                                PathBlueLight,
+                                PathOrange
                             )
+                        )
                     )
                     .padding(22.dp)
             ) {
@@ -339,14 +456,12 @@ fun AdminDashboardScreen(
 
                     Text(
                         text = "Welcome back,",
-                        color =
-                            Color.White.copy(
-                                alpha = 0.85f
-                            ),
-                        style =
-                            MaterialTheme
-                                .typography
-                                .bodyLarge
+                        color = Color.White.copy(
+                            alpha = 0.85f
+                        ),
+                        style = MaterialTheme
+                            .typography
+                            .bodyLarge
                     )
 
                     Spacer(
@@ -357,12 +472,10 @@ fun AdminDashboardScreen(
                     Text(
                         text = adminName,
                         color = Color.White,
-                        fontWeight =
-                            FontWeight.Bold,
-                        style =
-                            MaterialTheme
-                                .typography
-                                .headlineSmall
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme
+                            .typography
+                            .headlineSmall
                     )
 
                     Spacer(
@@ -373,14 +486,12 @@ fun AdminDashboardScreen(
                     Text(
                         text =
                             "Manage schools, teachers and students.",
-                        color =
-                            Color.White.copy(
-                                alpha = 0.90f
-                            ),
-                        style =
-                            MaterialTheme
-                                .typography
-                                .bodyMedium
+                        color = Color.White.copy(
+                            alpha = 0.90f
+                        ),
+                        style = MaterialTheme
+                            .typography
+                            .bodyMedium
                     )
                 }
             }
@@ -388,7 +499,7 @@ fun AdminDashboardScreen(
 
             Spacer(
                 modifier =
-                    Modifier.height(22.dp)
+                    Modifier.height(20.dp)
             )
 
 
@@ -407,36 +518,44 @@ fun AdminDashboardScreen(
 
                 DashboardStatCard(
                     title = "Schools",
+
                     value =
                         if (isLoadingCounts) {
                             null
                         } else {
                             schoolCount.toString()
                         },
+
                     modifier =
                         Modifier.weight(1f)
                 )
 
+
                 DashboardStatCard(
                     title = "Teachers",
+
                     value =
                         if (isLoadingCounts) {
                             null
                         } else {
                             teacherCount.toString()
                         },
+
                     modifier =
                         Modifier.weight(1f)
                 )
 
+
                 DashboardStatCard(
                     title = "Students",
+
                     value =
                         if (isLoadingCounts) {
                             null
                         } else {
                             studentCount.toString()
                         },
+
                     modifier =
                         Modifier.weight(1f)
                 )
@@ -445,21 +564,21 @@ fun AdminDashboardScreen(
 
             Spacer(
                 modifier =
-                    Modifier.height(24.dp)
+                    Modifier.height(22.dp)
             )
 
 
             // =================================================
-            // MANAGEMENT
+            // MANAGEMENT TITLE
             // =================================================
 
             Text(
                 text = "Management",
                 color = PathBlue,
-                fontWeight =
-                    FontWeight.Bold,
-                style =
-                    MaterialTheme.typography.titleLarge
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme
+                    .typography
+                    .titleLarge
             )
 
             Spacer(
@@ -471,19 +590,19 @@ fun AdminDashboardScreen(
                 text =
                     "Manage your PathPrakash platform",
                 color = Color.Gray,
-                style =
-                    MaterialTheme.typography.bodyMedium
+                style = MaterialTheme
+                    .typography
+                    .bodyMedium
             )
-
 
             Spacer(
                 modifier =
-                    Modifier.height(14.dp)
+                    Modifier.height(12.dp)
             )
 
 
             // =================================================
-            // MENU GRID
+            // MANAGEMENT GRID
             // =================================================
 
             LazyVerticalGrid(
@@ -492,17 +611,25 @@ fun AdminDashboardScreen(
                     GridCells.Fixed(2),
 
                 modifier =
-                    Modifier.fillMaxWidth(),
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
 
                 horizontalArrangement =
                     Arrangement.spacedBy(12.dp),
 
                 verticalArrangement =
-                    Arrangement.spacedBy(12.dp)
+                    Arrangement.spacedBy(12.dp),
 
+                contentPadding =
+                    PaddingValues(
+                        bottom = 12.dp
+                    )
             ) {
 
-                items(menuItems) { item ->
+                items(
+                    items = menuItems
+                ) { item ->
 
                     AdminMenuCard(
 
@@ -512,14 +639,29 @@ fun AdminDashboardScreen(
 
                             when (item.title) {
 
-                                "Add School" ->
+                                "Add School" -> {
                                     onAddSchool()
+                                }
 
-                                "Schools" ->
+                                "Schools" -> {
                                     onSchools()
+                                }
 
-                                "System Settings" ->
+                                "Users" -> {
+                                    onUsers()
+                                }
+
+                                "Admins" -> {
+                                    onUsers()
+                                }
+
+                                "System Settings" -> {
                                     onSettings()
+                                }
+
+                                "Admin Profile" -> {
+                                    onProfile()
+                                }
                             }
                         }
                     )
@@ -531,14 +673,297 @@ fun AdminDashboardScreen(
 
 
 // =====================================================
-// STAT CARD
+// BOTTOM NAVIGATION BAR
+// =====================================================
+
+@Composable
+private fun AdminBottomNavigationBar(
+
+    selectedItem: AdminBottomNavItem,
+
+    onItemSelected:
+        (AdminBottomNavItem) -> Unit
+
+) {
+
+    /*
+     * 100dp total height.
+     *
+     * White navigation surface = 76dp.
+     *
+     * Remaining space allows the selected
+     * purple circle to float above the white bar.
+     */
+
+    Box(
+
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .height(100.dp)
+    ) {
+
+
+        // =================================================
+        // WHITE SURFACE
+        // =================================================
+
+        Surface(
+
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(76.dp)
+                .align(
+                    Alignment.BottomCenter
+                ),
+
+            color = Color.White,
+
+            shape =
+                RoundedCornerShape(
+                    topStart = 28.dp,
+                    topEnd = 28.dp,
+                    bottomStart = 0.dp,
+                    bottomEnd = 0.dp
+                ),
+
+            shadowElevation = 10.dp
+        ) {}
+
+
+        // =================================================
+        // NAVIGATION ROW
+        // =================================================
+
+        Row(
+
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .align(
+                    Alignment.BottomCenter
+                )
+                .padding(
+                    horizontal = 8.dp
+                ),
+
+            horizontalArrangement =
+                Arrangement.SpaceEvenly,
+
+            verticalAlignment =
+                Alignment.Bottom
+        ) {
+
+            AdminBottomNavItem.entries.forEach { item ->
+
+                AdminBottomNavigationItem(
+
+                    item = item,
+
+                    selected =
+                        item == selectedItem,
+
+                    onClick = {
+                        onItemSelected(item)
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+// =====================================================
+// BOTTOM NAVIGATION ITEM
+// =====================================================
+
+@Composable
+private fun AdminBottomNavigationItem(
+
+    item: AdminBottomNavItem,
+
+    selected: Boolean,
+
+    onClick: () -> Unit
+
+) {
+
+    Box(
+
+        modifier = Modifier
+            .width(72.dp)
+            .height(100.dp)
+            .clickable {
+                onClick()
+            },
+
+        contentAlignment =
+            Alignment.BottomCenter
+    ) {
+
+        if (selected) {
+
+            // =================================================
+            // SELECTED ITEM
+            // =================================================
+
+            Column(
+
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        bottom = 5.dp
+                    ),
+
+                horizontalAlignment =
+                    Alignment.CenterHorizontally,
+
+                verticalArrangement =
+                    Arrangement.Bottom
+            ) {
+
+                // ---------------------------------------------
+                // PURPLE ACTIVE CIRCLE
+                // ---------------------------------------------
+
+                Box(
+
+                    modifier = Modifier
+                        .size(50.dp)
+                        .offset(
+                            y = (-5).dp
+                        )
+                        .clip(
+                            CircleShape
+                        )
+                        .background(
+                            BottomPurple
+                        ),
+
+                    contentAlignment =
+                        Alignment.Center
+                ) {
+
+                    Icon(
+
+                        imageVector =
+                            item.icon,
+
+                        contentDescription =
+                            item.title,
+
+                        tint =
+                            Color.White,
+
+                        modifier =
+                            Modifier.size(27.dp)
+                    )
+                }
+
+
+                // ---------------------------------------------
+                // ACTIVE TEXT
+                // ---------------------------------------------
+
+                Text(
+
+                    text =
+                        item.title,
+
+                    color =
+                        BottomPurple,
+
+                    fontWeight =
+                        FontWeight.Bold,
+
+                    fontSize =
+                        12.sp,
+
+                    maxLines = 1
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(4.dp)
+                )
+            }
+
+        } else {
+
+            // =================================================
+            // UNSELECTED ITEM
+            // =================================================
+
+            Column(
+
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        bottom = 7.dp
+                    ),
+
+                horizontalAlignment =
+                    Alignment.CenterHorizontally,
+
+                verticalArrangement =
+                    Arrangement.Bottom
+            ) {
+
+                Icon(
+
+                    imageVector =
+                        item.icon,
+
+                    contentDescription =
+                        item.title,
+
+                    tint =
+                        Color(0xFF64748B),
+
+                    modifier =
+                        Modifier.size(25.dp)
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(5.dp)
+                )
+
+                Text(
+
+                    text =
+                        item.title,
+
+                    color =
+                        Color(0xFF64748B),
+
+                    fontWeight =
+                        FontWeight.Medium,
+
+                    fontSize =
+                        11.sp,
+
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+
+// =====================================================
+// DASHBOARD STAT CARD
 // =====================================================
 
 @Composable
 private fun DashboardStatCard(
+
     title: String,
+
     value: String?,
+
     modifier: Modifier = Modifier
+
 ) {
 
     Card(
@@ -586,11 +1011,16 @@ private fun DashboardStatCard(
             } else {
 
                 Text(
-                    text = value,
+
+                    text =
+                        value,
+
                     color =
                         PathOrangeDark,
+
                     fontWeight =
                         FontWeight.Bold,
+
                     style =
                         MaterialTheme
                             .typography
@@ -604,10 +1034,16 @@ private fun DashboardStatCard(
             )
 
             Text(
-                text = title,
-                color = PathBlue,
+
+                text =
+                    title,
+
+                color =
+                    PathBlue,
+
                 fontWeight =
                     FontWeight.Medium,
+
                 style =
                     MaterialTheme
                         .typography
@@ -624,17 +1060,35 @@ private fun DashboardStatCard(
 
 @Composable
 private fun AdminMenuCard(
+
     item: AdminMenuItem,
+
     onClick: () -> Unit
+
 ) {
+
+    /*
+     * IMPORTANT:
+     *
+     * We are NOT using:
+     *
+     * Card(onClick = onClick)
+     *
+     * because some Material3 versions can produce:
+     *
+     * "No value passed for parameter 'content'"
+     *
+     * Instead we use normal Card + clickable modifier.
+     */
 
     Card(
 
-        onClick = onClick,
-
         modifier = Modifier
             .fillMaxWidth()
-            .height(155.dp),
+            .height(145.dp)
+            .clickable {
+                onClick()
+            },
 
         shape =
             RoundedCornerShape(22.dp),
@@ -664,10 +1118,14 @@ private fun AdminMenuCard(
                 Arrangement.Center
         ) {
 
+            // =================================================
+            // ICON
+            // =================================================
+
             Box(
 
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(48.dp)
                     .clip(
                         RoundedCornerShape(15.dp)
                     )
@@ -682,41 +1140,68 @@ private fun AdminMenuCard(
             ) {
 
                 Icon(
+
                     imageVector =
                         item.icon,
+
                     contentDescription =
                         item.title,
+
                     tint =
                         PathOrangeDark,
+
                     modifier =
-                        Modifier.size(28.dp)
+                        Modifier.size(27.dp)
                 )
             }
 
+
             Spacer(
                 modifier =
-                    Modifier.height(12.dp)
+                    Modifier.height(10.dp)
             )
 
+
+            // =================================================
+            // TITLE
+            // =================================================
+
             Text(
-                text = item.title,
-                color = PathBlue,
+
+                text =
+                    item.title,
+
+                color =
+                    PathBlue,
+
                 fontWeight =
                     FontWeight.Bold,
+
                 style =
                     MaterialTheme
                         .typography
                         .titleMedium
             )
 
+
             Spacer(
                 modifier =
                     Modifier.height(3.dp)
             )
 
+
+            // =================================================
+            // SUBTITLE
+            // =================================================
+
             Text(
-                text = item.subtitle,
-                color = Color.Gray,
+
+                text =
+                    item.subtitle,
+
+                color =
+                    Color.Gray,
+
                 style =
                     MaterialTheme
                         .typography
