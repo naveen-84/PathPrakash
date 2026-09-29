@@ -16,11 +16,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
 import com.app.pathprakash.ui.admin.AddSchoolScreen
 import com.app.pathprakash.ui.admin.AdminDashboardScreen
 import com.app.pathprakash.ui.admin.AdminProfileScreen
 import com.app.pathprakash.ui.admin.SchoolsScreen
-import com.app.pathprakash.ui.admin.SystemSettingsScreen
+import com.app.pathprakash.ui.admin.system.SystemSettingsScreen
 import com.app.pathprakash.ui.admin.system.AcademicDefaultsScreen
 import com.app.pathprakash.ui.admin.system.AuditLogsScreen
 import com.app.pathprakash.ui.admin.system.GeneralSettingsScreen
@@ -30,7 +31,6 @@ import com.app.pathprakash.ui.admin.system.SchoolManagementSettingsScreen
 import com.app.pathprakash.ui.admin.system.SecuritySettingsScreen
 import com.app.pathprakash.ui.admin.system.StorageSettingsScreen
 import com.app.pathprakash.ui.admin.system.SubscriptionSettingsScreen
-import com.app.pathprakash.ui.admin.system.SystemSettingsScreen
 import com.app.pathprakash.ui.admin.system.UserRoleSettingsScreen
 
 import com.app.pathprakash.ui.auth.LoginScreen
@@ -50,8 +50,7 @@ fun AppNavigation(
     // NAV CONTROLLER
     // =================================================
 
-    val navController =
-        rememberNavController()
+    val navController = rememberNavController()
 
 
     // =================================================
@@ -59,24 +58,16 @@ fun AppNavigation(
     // =================================================
 
     val isLoading by
-    authViewModel
-        .isLoading
-        .collectAsState()
+    authViewModel.isLoading.collectAsState()
 
     val errorMessage by
-    authViewModel
-        .errorMessage
-        .collectAsState()
+    authViewModel.errorMessage.collectAsState()
 
     val userProfile by
-    authViewModel
-        .userProfile
-        .collectAsState()
+    authViewModel.userProfile.collectAsState()
 
     val isCheckingSession by
-    authViewModel
-        .isCheckingSession
-        .collectAsState()
+    authViewModel.isCheckingSession.collectAsState()
 
 
     // =================================================
@@ -99,16 +90,18 @@ fun AppNavigation(
 
             if (userProfile != null) {
 
-                val profile =
-                    userProfile!!
+                val profile = userProfile!!
 
+
+                // =================================================
+                // ROLE BASED NAVIGATION
+                // =================================================
 
                 when (
                     profile.role
                         .trim()
                         .lowercase()
                 ) {
-
 
                     // =========================================
                     // SUPER ADMIN
@@ -268,11 +261,10 @@ fun AppNavigation(
 
     NavHost(
 
-        navController =
-            navController,
+        navController = navController,
 
-        startDestination =
-            Routes.Splash.route
+        startDestination = Routes.Splash.route
+
     ) {
 
 
@@ -313,11 +305,9 @@ fun AppNavigation(
 
                     authViewModel.loginWithEmail(
 
-                        email =
-                            email,
+                        email = email,
 
-                        password =
-                            password
+                        password = password
                     )
                 },
 
@@ -330,10 +320,9 @@ fun AppNavigation(
 
                 onForgotPassword = {
 
-                    // =========================================
-                    // TODO
-                    // Firebase password reset later
-                    // =========================================
+                    // Firebase password reset
+                    // later implement karenge.
+
                 },
 
 
@@ -401,7 +390,7 @@ fun AppNavigation(
                 onSettings = {
 
                     navController.navigate(
-                        Routes.AdminSettings.route
+                        Routes.SystemSettings.route
                     )
                 },
 
@@ -415,6 +404,7 @@ fun AppNavigation(
                     /*
                      * Users screen baad mein implement karenge.
                      */
+
                 },
 
 
@@ -427,6 +417,7 @@ fun AppNavigation(
                     /*
                      * Reports screen baad mein implement karenge.
                      */
+
                 },
 
 
@@ -581,106 +572,326 @@ fun AppNavigation(
 
 
         // =================================================
-        // ADMIN SETTINGS
+        // SYSTEM SETTINGS
         // =================================================
 
-        composable(Routes.SystemSettings.route) {
+        composable(
+            Routes.SystemSettings.route
+        ) {
+
             SystemSettingsScreen(
+
+                // ---------------------------------------------
+                // BACK
+                // ---------------------------------------------
+
                 onBack = {
+
                     navController.popBackStack()
                 },
+
+
+                // ---------------------------------------------
+                // GENERAL
+                // ---------------------------------------------
+
                 onGeneral = {
-                    navController.navigate(Routes.GeneralSettings.route)
+
+                    navController.navigate(
+                        Routes.GeneralSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // USERS & ROLES
+                // ---------------------------------------------
+
                 onUsersRoles = {
-                    navController.navigate(Routes.UserRoleSettings.route)
+
+                    navController.navigate(
+                        Routes.UserRoleSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // SCHOOL MANAGEMENT
+                // ---------------------------------------------
+
                 onSchoolManagement = {
-                    navController.navigate(Routes.SchoolManagementSettings.route)
+
+                    navController.navigate(
+                        Routes.SchoolManagementSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // NOTIFICATIONS
+                // ---------------------------------------------
+
                 onNotifications = {
-                    navController.navigate(Routes.NotificationSettings.route)
+
+                    navController.navigate(
+                        Routes.NotificationSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // SECURITY
+                // ---------------------------------------------
+
                 onSecurity = {
-                    navController.navigate(Routes.SecuritySettings.route)
+
+                    navController.navigate(
+                        Routes.SecuritySettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // STORAGE
+                // ---------------------------------------------
+
                 onStorage = {
-                    navController.navigate(Routes.StorageSettings.route)
+
+                    navController.navigate(
+                        Routes.StorageSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // ACADEMIC DEFAULTS
+                // ---------------------------------------------
+
                 onAcademicDefaults = {
-                    navController.navigate(Routes.AcademicDefaults.route)
+
+                    navController.navigate(
+                        Routes.AcademicDefaults.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // SUBSCRIPTION
+                // ---------------------------------------------
+
                 onSubscription = {
-                    navController.navigate(Routes.SubscriptionSettings.route)
+
+                    navController.navigate(
+                        Routes.SubscriptionSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // MAINTENANCE
+                // ---------------------------------------------
+
                 onMaintenance = {
-                    navController.navigate(Routes.MaintenanceSettings.route)
+
+                    navController.navigate(
+                        Routes.MaintenanceSettings.route
+                    )
                 },
+
+
+                // ---------------------------------------------
+                // AUDIT LOGS
+                // ---------------------------------------------
+
                 onAuditLogs = {
-                    navController.navigate(Routes.AuditLogs.route)
+
+                    navController.navigate(
+                        Routes.AuditLogs.route
+                    )
                 }
             )
         }
 
-        composable(Routes.GeneralSettings.route) {
+
+        // =================================================
+        // GENERAL SETTINGS
+        // =================================================
+
+        composable(
+            Routes.GeneralSettings.route
+        ) {
+
             GeneralSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.UserRoleSettings.route) {
+
+        // =================================================
+        // USER ROLE SETTINGS
+        // =================================================
+
+        composable(
+            Routes.UserRoleSettings.route
+        ) {
+
             UserRoleSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.SchoolManagementSettings.route) {
+
+        // =================================================
+        // SCHOOL MANAGEMENT SETTINGS
+        // =================================================
+
+        composable(
+            Routes.SchoolManagementSettings.route
+        ) {
+
             SchoolManagementSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.NotificationSettings.route) {
+
+        // =================================================
+        // NOTIFICATION SETTINGS
+        // =================================================
+
+        composable(
+            Routes.NotificationSettings.route
+        ) {
+
             NotificationSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.SecuritySettings.route) {
+
+        // =================================================
+        // SECURITY SETTINGS
+        // =================================================
+
+        composable(
+            Routes.SecuritySettings.route
+        ) {
+
             SecuritySettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.StorageSettings.route) {
+
+        // =================================================
+        // STORAGE SETTINGS
+        // =================================================
+
+        composable(
+            Routes.StorageSettings.route
+        ) {
+
             StorageSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.AcademicDefaults.route) {
+
+        // =================================================
+        // ACADEMIC DEFAULTS
+        // =================================================
+
+        composable(
+            Routes.AcademicDefaults.route
+        ) {
+
             AcademicDefaultsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.SubscriptionSettings.route) {
+
+        // =================================================
+        // SUBSCRIPTION SETTINGS
+        // =================================================
+
+        composable(
+            Routes.SubscriptionSettings.route
+        ) {
+
             SubscriptionSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.MaintenanceSettings.route) {
+
+        // =================================================
+        // MAINTENANCE SETTINGS
+        // =================================================
+
+        composable(
+            Routes.MaintenanceSettings.route
+        ) {
+
             MaintenanceSettingsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable(Routes.AuditLogs.route) {
+
+        // =================================================
+        // AUDIT LOGS
+        // =================================================
+
+        composable(
+            Routes.AuditLogs.route
+        ) {
+
             AuditLogsScreen(
-                onBack = { navController.popBackStack() }
+
+                onBack = {
+
+                    navController.popBackStack()
+                }
             )
         }
+
 
         // =================================================
         // SCHOOL ADMIN DASHBOARD
@@ -691,8 +902,7 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title =
-                    "School Admin Dashboard"
+                title = "School Admin Dashboard"
             )
         }
 
@@ -706,8 +916,7 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title =
-                    "Teacher Dashboard"
+                title = "Teacher Dashboard"
             )
         }
 
@@ -721,8 +930,7 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title =
-                    "Parent Dashboard"
+                title = "Parent Dashboard"
             )
         }
 
@@ -736,8 +944,7 @@ fun AppNavigation(
         ) {
 
             SimpleAdminScreen(
-                title =
-                    "Student Dashboard"
+                title = "Student Dashboard"
             )
         }
     }
@@ -761,6 +968,7 @@ private fun SessionLoadingScreen() {
 
         verticalArrangement =
             Arrangement.Center
+
     ) {
 
         CircularProgressIndicator()
@@ -787,12 +995,12 @@ private fun SimpleAdminScreen(
 
         verticalArrangement =
             Arrangement.Center
+
     ) {
 
         Text(
 
-            text =
-                title,
+            text = title,
 
             style =
                 MaterialTheme
